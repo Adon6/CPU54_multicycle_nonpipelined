@@ -210,7 +210,21 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     assign SH=(op ==SH_CODE)? 1 : 0;
 
 //指令信号转化成控制信号的部分
+//试用一下布尔控制
+    reg T1,T2,T3,T4,T5;
+    
+    always @(*)begin
+        if(reset)begin
+            T1<=0;
+            T2<=0;
+            T3<=0;
+            T4<=0;
+            T5<=0;
+        end
 
+        
+
+    end
 
 
 
