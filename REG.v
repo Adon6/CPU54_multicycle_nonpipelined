@@ -1,49 +1,47 @@
-/*
-module pcreg(
-    input clk,  //下升沿有效
+
+module reg_pc(
     input rst,   //高电平有效
-    input ena, //1read,0keep
-    input [31:0] iData,
-    output reg [31:0] oData
+    input write,
+    input read,
+    input [31:0] wdata,
+    output [31:0] rdata
     );
 
-    
-    initial begin
-        oData<= 32'h0040_0000;
-    end
-    
+    reg [31:0]data;
 
-    always @( negedge clk,negedge rst) begin
+
+    always @(*) begin
         if( rst== 1) 
-            oData<= 32'h0040_0000;
-        else begin
-            if(ena)
-                oData<= iData;
-            else
-                oData<= oData;
-        end
+            data<= 32'h0040_0000;
+        else  if(write)
+            data<=wdata; 
+        else
+            data<=data;
     end
+    assign rdata=(read)?data:32'hzzzz;
 
 endmodule
 
-*/
 
-module reg#(parameter INIT =32'h0040_0000)(
+
+module reg_32(
     input rst,   //高电平有效
-    input [31:0]wdata,
     input write,
     input read,
+    input [31:0]wdata,
     output [31:0]rdata
-)
+);
     reg [31:0]data;
 
     always @(*)begin
         if (rst)
-            odata<=INIT;
+            data<=32'h0000_0000;
         else if(write)
             data<=wdata; 
+        else
+            data<=data;
     end
 
-    assign rdata<=(read)?data:{z{32}};
+    assign rdata=(read)?data:32'hzzzz;
 
 endmodule

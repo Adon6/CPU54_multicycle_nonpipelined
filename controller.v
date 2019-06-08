@@ -45,14 +45,14 @@ module CONTROLLER(
     output DIV_C,
 
     output IR_in,
-
+    output clz_c,
     output mfc0,
     output mtc0,
     output eret,
     output exception,
     output [4:0]cause
     
-)
+);
 
 //编码参数部分
  parameter 
@@ -134,12 +134,12 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     SLT,SLTU,TEQ,ERET,MTC0,MFC0,MULT,CLZ,BGEZ,J,JAL,BEQ,BNE,
     ADDI,ADDIU,SLTI,SLTIU,ANDI,ORI,XORI,LUI,LB,LH,LW,LBU,LHU,SB,SW,SH;
 
-    assign op[5:0]= inst[31:26];
-    assign rsc[5:0]= inst[25:21];
-    assign rtc[5:0]= inst[20:16];
-    assign rdc[5:0]= inst[15:11];
-    assign shamt[5:0]= inst[10:6];
-    assign func[5:0]= inst[5:0];
+    assign op[5:0]= instr[31:26];
+    assign rsc[5:0]= instr[25:21];
+    assign rtc[5:0]= instr[20:16];
+    assign rdc[5:0]= instr[15:11];
+    assign shamt[5:0]= instr[10:6];
+    assign func[5:0]= instr[5:0];
 
 //编码转换成指令信号部分
     assign SLL = ((op == CALCU_CODE )&& ( func == SLL_CODE )) ? 1 : 0;
@@ -265,7 +265,7 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     assign PC_in=T2 || T3&(J|BREAK|SYSCALL|ERET) || T4&(JAL|JR|TEQ) || T5&(BNE|BEQ|BGEZ|JALR);
     assign PC_out= T1;
     assign Y_in=T1 || T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) || T4&(BNE|BEQ|BGEZ);
-    assign Y_out=T2 || T3&(JAL|JALR) || T4&((ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR) || T5&(BNE|BEQ|BGEZ|JALR);
+    assign Y_out=T2 || T3&(JAL|JALR) || T4&((ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR)) || T5&(BNE|BEQ|BGEZ|JALR);
     assign M_mem=T4&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
     assign MEM_w=T4&(SW|SH|SB);
     assign MEM_r=T1 || T4&(LBU|LHU|LW|LB|LH|LW);
@@ -297,12 +297,13 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     assign MUL_C=T3&(MULT|MULTU|MUL);
     assign DIV_C=T3&(DIV|DIVU);
     assign IR_in=T1;
+    assign clz_c=T3&CLZ;
 
     assign mfc0= T3&MFC0;
     assign mtc0= T3&MTC0;
     assign eret= T3&ERET;
     assign exception= T3&(SYSCALL|BREAK) || T4&TEQ;
-    assign [4:0]cause=(BREAK)?5'b01001 :(
+    assign cause=(BREAK)?5'b01001 :(
                       (TEQ)?5'b01101 :(
                           (SYSCALL)?5'b01000 : 5'b00000
                       ));

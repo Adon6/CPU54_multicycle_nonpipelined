@@ -2,7 +2,7 @@
 module sccomp_dataflow(
 
     input clk_in,
-    input reset,
+    input reset
 
 
     //output [7:0] o_seg,
@@ -18,11 +18,11 @@ module sccomp_dataflow(
     //wire [31:0] addr; 
 
     cpu sccpu( .clk( clkDivided), .rst( reset), .dataIn( dataIn), .GmemAddr( addr), 
-    .dataOut( dataOut), .mem_W( mem_wrt),mem_R(mem_rd),.MEM_S(mem_sign),.MEM_C(MEM_C)
+    .dataOut( dataOut), .Gmem_W( mem_wrt), .Gmem_R(mem_rd),.MEM_S(mem_sign),.MEM_C(MEM_C)
        );
 
 
-    MEM GMEM(.clk(clkDivided),.MEM_W(mem_wrt),.MEM_R(mem_rd),.MEM_C(MEM_C),.MEM_S(mem_sign)
+    MEM GMEM(.MEM_W(mem_wrt),.MEM_R(mem_rd),.MEM_C(MEM_C),.MEM_S(mem_sign)
      ,.iAddr(addr- 32'h1001_0000), .iData(dataOut) ,.oData(dataIn));
 
 

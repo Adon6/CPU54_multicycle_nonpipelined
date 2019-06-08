@@ -29,7 +29,7 @@ module CP0(
 
     reg [31:0] array_reg [31:0];
 
-    always @(negedge clk, negedge rst) begin
+    always @(negedge clk) begin
         if(rst==1)begin//高位有效<1R>
             i= 0;
             repeat( 32) begin
@@ -51,6 +51,8 @@ module CP0(
         else if (eret) begin
             exc_addr[epc_reg]<=pc;            
         end
+        else
+            exc_addr[epc_reg]<=pc;
         
     end
 

@@ -3,6 +3,7 @@ module cpu(
     input rst,
     input [31:0] dataIn,
     output Gmem_W,
+    output Gmem_R,
     //output [31:0] imemAddr,
     output [31:0] GmemAddr,
     output [31:0] dataOut,
@@ -18,7 +19,7 @@ module cpu(
     wire mfc0,mtc0,eret,exception;
     wire [4:0]cause;
 
-    wire sign_ext,
+    wire sign_ext;
     wire [1:0]mux_pc;
     wire PC_in,PC_out,Y_in,Y_out;
     //mem connected
@@ -31,7 +32,7 @@ module cpu(
     wire rd_w;
     wire mux_lo, mux_hi , lo_w, hi_w, S_mdu;
     wire MUL_C, DIV_C;
-    wire IR_in;
+    wire IR_in,clz_c;
 
     wire [4:0] mux_rdc_out;
     wire [31:0] mux_pc_out, mux_mem_out, mux_a_out, mux_b_out, mux_lo_out, mux_hi_out;
@@ -41,7 +42,7 @@ module cpu(
     wire [31:0] mdu_hi_out,mdu_lo_out;
     wire [31:0] alu_f;
 
-    wire [31:0] exc_addr
+    wire [31:0] exc_addr;
 
     wire [4:0] rtc,rsc,rdc,shamt;
     wire [5:0] op,func;
@@ -77,17 +78,19 @@ module cpu(
     assign CONST_0 =32'H0000;
     //线型赋值列表
 
-    assign op= inst[31:26];
-    assign rsc= inst[25:21];
-    assign rtc= inst[20:16];
-    assign rdc= inst[15:11];
-    assign shamt= inst[10:6];
-    assign func= inst[5:0];
-    assign target = inst[25:0];
-    assign offset =inst[15:0];
+    assign op= ir_out[31:26];
+    assign rsc= ir_out[25:21];
+    assign rtc= ir_out[20:16];
+    assign rdc= ir_out[15:11];
+    assign shamt= ir_out[10:6];
+    assign func= ir_out[5:0];
+    assign target = ir_out[25:0];
+    assign offset =ir_out[15:0];
 
     //output connect
     assign Gmem_W = mem_w;
+    assign Gmem_R = mem_r;
+
     assign GmemAddr = mux_mem_out;
     assign dataOut =  rt_out;
 
@@ -215,11 +218,11 @@ module mdu(
 )
 */
 
-    control CONTROL_unit(.instr(ir_out),.clk(clk),.alu_Z(alu_z),.alu_C(alu_c),.alu_N(alu_n),.alu_O(alu_o),.reset(rst),
+    CONTROLLER CONTROL_unit(.instr(ir_out),.clk(clk),.alu_Z(alu_z),.alu_C(alu_c),.alu_N(alu_n),.alu_O(alu_o),.reset(rst),
     .S(sign_ext),.M_pc(mux_pc),.PC_in(PC_in),.PC_out(PC_out),.Y_in(Y_in),.Y_out(Y_out),.M_mem(mux_mem),.MEM_w(mem_w),
     .MEM_r(mem_r),.MEM_S(MEM_S),.MEM_C(MEM_C),.M_A(mux_A),.M_B(mux_B),.ALUC(ALU_C),.M_rdc(mux_rdc),.M_rd(mux_rd),
-    .Rd_w(rd_w),.M_lo(mux_lo),M_hi(mux_hi),.LO_w(lo_w),.HI_w(hi_W),.S_mdu(S_mdu),.MUL_C(MUL_c),.DIV_C(DIV_C),.IR_in(IR_in),
-    .mfc(mfc0),.mtc(mtc0),.eret(eret),.exception(exception),.cause(cause));
+    .Rd_w(rd_w),.M_lo(mux_lo),.M_hi(mux_hi),.LO_w(lo_w),.HI_w(hi_W),.S_mdu(S_mdu),.MUL_C(MUL_c),.DIV_C(DIV_C),.IR_in(IR_in),
+   .clz_c(clz_c),.mfc0(mfc0),.mtc0(mtc0),.eret(eret),.exception(exception),.cause(cause));
 
 /*
 module CONTROLLER(
@@ -293,16 +296,16 @@ module regfile(
     
 */
 
-    reg #(32'h0040_0000)pc_reg(.rst(rst),.wdata(mux_pc_out),.write(PC_in),.read(PC_out),.rdata(pc_out));
-    reg #(32'h0000_0000)y_reg(.rst(rst),.wdata(alu_f),.write(Y_in),.read(Y_out),.rdata(y_out));
-    reg #(32'h0000_0000)ir_reg(.rst(rst),.wdata(dataIn),.write(IR_in),.read(ONE),.rdata(ir_out));
-    reg #(32'h0000_0000)lo_reg(.rst(rst),.wdata(mux_lo_out),.write(lo_w),.read(ONE),.rdata(lo_out));
-    reg #(32'h0000_0000)hi_reg(.rst(rst),.wdata(mux_hi_out),.write(hi_w),.read(ONE),.rdata(hi_out));
-    clz clz_unit(.data_in(rs_out),.data_out(clz_out));
+    reg_pc pc_reg(.rst(rst),.wdata(mux_pc_out),.write(PC_in),.read(PC_out),.rdata(pc_out));
+    reg_32 y_reg(.rst(rst),.wdata(alu_f),.write(Y_in),.read(Y_out),.rdata(y_out));
+    reg_32 ir_reg(.rst(rst),.wdata(dataIn),.write(IR_in),.read(ONE),.rdata(ir_out));
+    reg_32 lo_reg(.rst(rst),.wdata(mux_lo_out),.write(lo_w),.read(ONE),.rdata(lo_out));
+    reg_32 hi_reg(.rst(rst),.wdata(mux_hi_out),.write(hi_w),.read(ONE),.rdata(hi_out));
+    clz clz_unit(.clz_c(clz_c),.data_in(rs_out),.data_out(clz_out));
 
 
 /*
-module reg#(parameter INIT =32'h0040_0000)(
+module reg_32(
     input rst,   //高电平有效
     input [31:0]wdata,
     input write,

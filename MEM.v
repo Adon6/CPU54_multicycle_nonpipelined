@@ -32,38 +32,49 @@ module MEM(
         // 写入
             case (MEM_C)
             //这里没有指令的合法性判断
-                bit32_:
+                bit32_:begin
                     memory[ iAddr]<= iData[31:24];
                     memory[ iAddr+ 1]<= iData[23:16];
                     memory[ iAddr+ 2]<= iData[15:8];
-                    memory[ iAddr+ 3]<= iData[7:0];    
-                bit16_:
+                    memory[ iAddr+ 3]<= iData[7:0];   
+                    end
+                bit16_:begin
                     memory[ iAddr]<= iData[15:8];
                     memory[ iAddr+ 1]<= iData[7:0];
-                bit8_:
+                    end
+                bit8_:begin
                     memory[ iAddr]<= iData[7:0];
+                    end
+                default:;
+            endcase
         end     
         else if (MEM_R)begin
             case (MEM_C)
-                bit32_:
+                bit32_:begin
                     memory[ iAddr]<= iData[31:24];
                     memory[ iAddr+ 1]<= iData[23:16];
                     memory[ iAddr+ 2]<= iData[15:8];
                     memory[ iAddr+ 3]<= iData[7:0];    
-                bit16_:
-                    if(MEM_S)begin
-                        odata<={memory[ iAddr][7]{16},memory[ iAddr],memory[ iAddr+ 1]};
                     end
-                    else begin
-                        odata<={0{16},memory[ iAddr],memory[ iAddr+ 1]} ;
+                bit16_:begin
+                        if(MEM_S&&memory[iAddr][7]==1)begin
+
+                            oData<={{1{16}},memory[ iAddr],memory[ iAddr+ 1]};
+                        end
+                        else begin
+                            oData<={{0{16}},memory[ iAddr],memory[ iAddr+ 1]} ;
+                        end
                     end
-                bit8_:
-                    if(MEM_S)begin
-                        odata<={memory[ iAddr][7]{24},memory[iAddr]} ;
+                bit8_:begin
+                        if(MEM_S&&memory[iAddr][7]==1)begin
+                            oData<={{1{24}},memory[iAddr]} ;
+                        end
+                        else begin
+                            oData<={{0{24}},memory[ iAddr]};
+                        end
                     end
-                    else begin
-                        odata<={0{24},memory[ iAddr]};
-                    end
+                default:;
+            endcase
         end
     end    
 
