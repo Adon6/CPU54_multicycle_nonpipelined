@@ -1,11 +1,11 @@
-module MDU(
+module mdu(
     input [31:0]A,
     input [31:0]B,
     input MUL_C,
     input DIV_C,
     input Sign,
     output [31:0]LO,
-    output [31:0]HI,
+    output [31:0]HI
 )
 
 /*方法1，有很大风险

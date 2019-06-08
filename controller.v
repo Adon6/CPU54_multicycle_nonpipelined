@@ -1,6 +1,6 @@
 module CONTROLLER(
     input [31:0]instr,
-    input beat,
+    input clk,
     input alu_Z,
     input alu_C,
     input alu_N,
@@ -33,8 +33,8 @@ module CONTROLLER(
     output [1:0]M_rdc,
     output [2:0]M_rd,
     output Rd_w,
-    output Rs_r,
-    output Rt_r,
+//    output Rs_r,
+//    output Rt_r,
 
     output M_lo,
     output M_hi,
@@ -46,11 +46,11 @@ module CONTROLLER(
 
     output IR_in,
 
-    output reg mfc0,
-    output reg mtc0,
-    output reg eret,
-    output reg exception,
-    output reg [4:0]cause
+    output mfc0,
+    output mtc0,
+    output eret,
+    output exception,
+    output [4:0]cause
     
 )
 
@@ -131,7 +131,7 @@ module CONTROLLER(
 wire [5:0]op,rsc,rtc,rdc,shamt,func;
 wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     MTHI,MTLO,MULTU,DIV,DIVU,ADD,ADDU,SUB,SUBU,AND,OR,XOR,NOR,
-    SLT,SLTU,TEQ,,ERET,MTC0,MFC0,MULT,CLZ,BGEZ,J,JAL,BEQ,BNE,
+    SLT,SLTU,TEQ,ERET,MTC0,MFC0,MULT,CLZ,BGEZ,J,JAL,BEQ,BNE,
     ADDI,ADDIU,SLTI,SLTIU,ANDI,ORI,XORI,LUI,LB,LH,LW,LBU,LHU,SB,SW,SH;
 
     assign op[5:0]= inst[31:26];
@@ -213,20 +213,99 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
 //试用一下布尔控制
     reg T1,T2,T3,T4,T5;
     
-    always @(*)begin
+    always @(posedge clk)begin
         if(reset)begin
-            T1<=0;
+            T1<=1;
             T2<=0;
             T3<=0;
             T4<=0;
             T5<=0;
         end
-
-        
-
+        else if(T1)begin
+            T1<=0;
+            T2<=1;
+            T3<=0;
+            T4<=0;
+            T5<=0;
+        end
+        else if(T2)begin
+            T1<=0;
+            T2<=0;
+            T3<=1;
+            T4<=0;
+            T5<=0;
+        end
+        else if(T3)begin
+            T1<=(BREAK||SYSCALL||ERET||MFC0||MTC0||MFHI||MFLO||DIV||DIVU||MULT||MULTU||MUL||J||~(BEQ&&alu_Z==0)||~(BNE&&alu_Z!=0)||~(BGEZ&&alu_Z==0)||(TEQ&&alu_Z==0))?1:0;
+            T2<=0;
+            T3<=0;
+            T4<=(BREAK||SYSCALL||ERET||MFC0||MTC0||MFHI||MFLO||DIV||DIVU||MULT||MULTU||MUL||J||~(BEQ&&alu_Z==0)||~(BNE&&alu_Z!=0)||~(BGEZ&&alu_Z==0)||~(TEQ&&alu_Z==0))?0:1;
+            T5<=0;
+        end
+        else if(T4)begin
+            T1<=(BEQ||BNE||BGEZ||JALR)?0:1;
+            T2<=0;
+            T3<=0;
+            T4<=0;
+            T5<=(BEQ||BNE||BGEZ||JALR)?1:0;
+        end
+        else if(T5)begin
+            T1<=1;
+            T2<=0;
+            T3<=0;
+            T4<=0;
+            T5<=0;
+        end
     end
 
 
+    assign S=T3&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
+    assign M_pc[0]=T2 || (T4&JR) || (T5&(BNE|BEQ|BGEZ|JALR));
+    assign M_pc[1]=T3&(BREAK|SYSCALL|ERET) || (T4&TEQ);
+    assign PC_in=T2 || T3&(J|BREAK|SYSCALL|ERET) || T4&(JAL|JR|TEQ) || T5&(BNE|BEQ|BGEZ|JALR);
+    assign PC_out= T1;
+    assign Y_in=T1 || T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) || T4&(BNE|BEQ|BGEZ);
+    assign Y_out=T2 || T3&(JAL|JALR) || T4&((ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR) || T5&(BNE|BEQ|BGEZ|JALR);
+    assign M_mem=T4&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
+    assign MEM_w=T4&(SW|SH|SB);
+    assign MEM_r=T1 || T4&(LBU|LHU|LW|LB|LH|LW);
+    assign MEM_S=T4&(LBU|LHU);
+    assign MEM_C[0]=T4&(SH|LHU|LH);
+    assign MEM_C[1]=T4&(SB|LBU|LB);
+    assign M_A[0]=T1 || T4&(BNE|BEQ|BGEZ);
+    assign M_A[1]=T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) || T4&JALR;
+    assign M_B[0]=T1 || T3&(ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
+    assign M_B[1]=T1 || T4&(BNE|BEQ|BGEZ);
+    assign M_B[2]=T3&(BGEZ|JR) ||T4&JALR;
+    assign ALUC[0]=T3&((BGEZ)|(BNE|BEQ|TEQ)|SUB|SUBU|OR|ORI|NOR|SLT|SLTI|SRL|SRLV);
+    assign ALUC[1]=T1 ||T3&((BNE|BEQ|TEQ)|(SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR)|ADD|ADDI|SUB|XOR|NOR|SLT|SLTI|SLTU|SLTIU|SLL|SLLV) || T4&(BNE|BEQ|BGEZ|JALR);
+    assign ALUC[2]=T3&((BGEZ)|AND|ANDI|OR|ORI|XOR|XORI|NOR|SLL|SLLV|SRL|SRLV|SRA|SRAV);
+    assign ALUC[3]=T3&((BGEZ)|LUI|SLT|SLTI|SLTU|SLTIU|SLL|SLLV|SRL|SRLV|SRA|SRAV);
+    assign M_rdc[0]=T3&(MFC0|MTC0) || T4&(SW|SH|SB);
+    assign M_rdc[1]=T3&(JAL|JALR);
+    assign M_rd[0]=T3&(MTC0|MFLO) || T4&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW|CLZ|MUL);
+    assign M_rd[1]=T3&(MFC0|MFLO) || T4&MUL;
+    assign M_rd[2]=T3&MFHI || T4&CLZ;
+    assign Rd_w=T3&(JAL|JALR|CLZ|MFC0|MFHI|MFLO) || T4&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|LBU|LHU|LW|LB|LH|LW|CLZ);
+    //assign Rs_r=
+    //assign Rt_r=
+    assign M_lo=T3&MTLO;
+    assign M_hi=T3&MTHI;
+    assign LO_w=T3&(MTLO|DIV|DIVU|MUL|MULT|MULTU);
+    assign HI_w=T3&(MTHI|DIV|DIVU|MUL|MULT|MULTU);
+    assign S_mdu=T3&(DIV|MULT|MUL);
+    assign MUL_C=T3&(MULT|MULTU|MUL);
+    assign DIV_C=T3&(DIV|DIVU);
+    assign IR_in=T1;
+
+    assign mfc0= T3&MFC0;
+    assign mtc0= T3&MTC0;
+    assign eret= T3&ERET;
+    assign exception= T3&(SYSCALL|BREAK) || T4&TEQ;
+    assign [4:0]cause=(BREAK)?5'b01001 :(
+                      (TEQ)?5'b01101 :(
+                          (SYSCALL)?5'b01000 : 5'b00000
+                      ));
 
 
 endmodule

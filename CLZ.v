@@ -1,4 +1,4 @@
-module CLZ(
+module clz(
     input [31:0]data_in,
     output reg [31:0]data_out
 )

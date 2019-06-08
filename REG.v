@@ -31,8 +31,8 @@ endmodule
 module reg#(parameter INIT =32'h0040_0000)(
     input rst,   //高电平有效
     input [31:0]wdata,
-    input Write,
-    input Read,
+    input write,
+    input read,
     output [31:0]rdata
 )
     reg [31:0]data;
@@ -40,10 +40,10 @@ module reg#(parameter INIT =32'h0040_0000)(
     always @(*)begin
         if (rst)
             odata<=INIT;
-        else if(Write)
+        else if(write)
             data<=wdata; 
     end
 
-    assign radata<=(Read)?data:{z{32}};
+    assign rdata<=(read)?data:{z{32}};
 
 endmodule
