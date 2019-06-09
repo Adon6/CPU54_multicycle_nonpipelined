@@ -4,6 +4,7 @@ module sccomp_dataflow(
     input clk_in,
     input reset,
 
+    output instr_change,
     output [31:0] inst,
     output [31:0] pc,
     output [31:0] addr 
@@ -20,14 +21,14 @@ module sccomp_dataflow(
     assign addr=MEM_ADDR;
 
     assign clkDivided =clk_in;
-    
+
     cpu sccpu( .clk( clkDivided), .rst( reset), .dataIn( dataIn), .GmemAddr(MEM_ADDR), 
     .dataOut( dataOut), .Gmem_W( mem_wrt), .Gmem_R(mem_rd),.MEM_S(mem_sign),.MEM_C(MEM_C),
-    .pc(pc),.inst(inst));
+    .pc(pc),.inst(inst),.instr_change(instr_change));
 
 
-    MEM GMEM(.MEM_W(mem_wrt),.MEM_R(mem_rd),.MEM_C(MEM_C),.MEM_S(mem_sign)
-     ,.iAddr(MEM_ADDR- 32'h1001_0000), .iData(dataOut) ,.oData(dataIn));
+    MEM32 GMEM(.MEM_W(mem_wrt),.MEM_R(mem_rd),.MEM_C(MEM_C),.MEM_S(mem_sign)
+     ,.iAddr(MEM_ADDR- 32'h0000_0000), .iData(dataOut) ,.oData(dataIn));
 
 
     //divider #(4)clkDivider(.iCLK( clk_in),.oCLK(clkDivided));

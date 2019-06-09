@@ -3,12 +3,14 @@
 module test();
     reg clk, rst;
     wire [31:0] inst, pc, addr;
+    wire instr_change;
+    reg care;
     integer file_output;
     integer counter= 0;
   
 
     initial begin
-        file_output= $fopen( "C:\\Users\\admin\\Desktop\\CPU54\\myresult_lwsw.txt");
+        file_output= $fopen( "C:\\Users\\admin\\Desktop\\54CPUtest\\1_addi_myresult.txt");
         rst= 1;
         #12 rst= 0;
     end
@@ -18,15 +20,17 @@ module test();
         forever 
         #5 clk= ~clk;
     end
-    
-    always
-    begin
-        counter= counter+ 1;
-        
-        //if( counter<= 1000) begin
-            $fdisplay( file_output, "pc: %h", pc);
-            $fdisplay( file_output, "instr: %h", inst);
-            #1;
+
+
+
+    always@( posedge instr_change) 
+    begin      
+       
+            counter= counter+ 1;
+
+            $fdisplay( file_output, "pc: %h", cpuTest.sccpu.pc_reg.data);
+            $fdisplay( file_output, "instr: %h", cpuTest.sccpu.ir_reg.data);
+            #2;
             //$fdisplay( file_output, "Daddr: %h", addr);
             //$fdisplay( file_output, "a= %h", cpuTest.sccpu.alu_a);
             //$fdisplay( file_output, "b= %h", cpuTest.sccpu.alu_b);
@@ -65,14 +69,17 @@ module test();
             $fdisplay( file_output, "regfile30: %h", cpuTest.sccpu.cpu_ref.array_reg[30]);
             $fdisplay( file_output, "regfile31: %h", cpuTest.sccpu.cpu_ref.array_reg[31]);                          
             
-        /*end
+     
+
+        /*
         else begin
             $fclose( file_output);
+        
         end*/
         
     end
     
-    sccomp_dataflow cpuTest( .clk_in( clk), .reset( rst), .inst( inst), .pc( pc), .addr( addr)
+    sccomp_dataflow cpuTest( .clk_in( clk), .reset( rst), .inst( inst), .pc( pc), .addr( addr),.instr_change(instr_change)
     
     );
     /*module sccomp_dataflow(

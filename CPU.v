@@ -4,6 +4,8 @@ module cpu(
     input [31:0] dataIn,
     output Gmem_W,
     output Gmem_R,
+    output instr_change,
+
     //output [31:0] imemAddr,
     output [31:0]inst,
     output [31:0]pc,
@@ -37,7 +39,7 @@ module cpu(
     wire IR_in,clz_c;
 
     wire [4:0] mux_rdc_out;
-    wire [31:0] mux_pc_out, mux_mem_out, mux_a_out, mux_b_out, mux_lo_out, mux_hi_out;
+    wire [31:0] mux_pc_out, mux_mem_out, mux_a_out, mux_b_out, mux_lo_out, mux_hi_out,mux_rd_out;
     wire [31:0] pc_out, y_out, ir_out, lo_out, hi_out ,clz_out, cp0_out,status_cp0;
     wire [31:0] rs_out,rt_out,rd_in;
     wire [31:0] ext16_out,ext18_out,ext5_out,catch_out;
@@ -226,7 +228,7 @@ module mdu(
     .S(sign_ext),.M_pc(mux_pc),.PC_in(PC_in),.PC_out(PC_out),.Y_in(Y_in),.Y_out(Y_out),.M_mem(mux_mem),.MEM_w(mem_w),
     .MEM_r(mem_r),.MEM_S(MEM_S),.MEM_C(MEM_C),.M_A(mux_A),.M_B(mux_B),.ALUC(ALU_C),.M_rdc(mux_rdc),.M_rd(mux_rd),
     .Rd_w(rd_w),.M_lo(mux_lo),.M_hi(mux_hi),.LO_w(lo_w),.HI_w(hi_W),.S_mdu(S_mdu),.MUL_C(MUL_c),.DIV_C(DIV_C),.IR_in(IR_in),
-   .clz_c(clz_c),.mfc0(mfc0),.mtc0(mtc0),.eret(eret),.exception(exception),.cause(cause));
+   .clz_c(clz_c),.mfc0(mfc0),.mtc0(mtc0),.eret(eret),.exception(exception),.cause(cause),.instr_change(instr_change));
 
 /*
 module CONTROLLER(
@@ -283,7 +285,7 @@ module CONTROLLER(
 
     /*这下面是带有时钟的部件*/
     //<1R>,<1E>
-    regfile cpu_ref(.clk(clk), .rst(rst), .we(rf_w), .raddr1(rsc), .raddr2(rtc), .waddr(mux_rdc_out), .wdata(mux_rd_out), .rdata1(rs_out), .rdata2(rt_out) );
+    regfile cpu_ref(.clk(clk), .rst(rst), .we(rd_w), .raddr1(rsc), .raddr2(rtc), .waddr(mux_rdc_out), .wdata(mux_rd_out), .rdata1(rs_out), .rdata2(rt_out) );
     
 /*
 module regfile(

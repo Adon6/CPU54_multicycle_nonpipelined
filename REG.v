@@ -12,7 +12,7 @@ module reg_pc(
 
     always @(*) begin
         if( rst== 1) 
-            data<= 32'h0040_0000;
+            data<= 32'h0000_0000;
         else  if(write)
             data<=wdata; 
         else

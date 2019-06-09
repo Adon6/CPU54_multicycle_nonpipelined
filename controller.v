@@ -11,6 +11,7 @@ module CONTROLLER(
     there are outputs for controlling ,38bits with 9bits cp0
     alu 9bits with mdu 7bits  won't be used together 
 */ 
+    output instr_change,
     output S, 
     
     output [1:0]M_pc,
@@ -56,76 +57,76 @@ module CONTROLLER(
 
 //编码参数部分
  parameter 
-    CALCU_CODE = 000000,
-    INBREAK_CODE = 010000,
-    MULT_OP_CODE = 011100,
+    CALCU_CODE = 6'b000000,
+    INBREAK_CODE = 6'b010000,
+    MULT_OP_CODE = 6'b011100,
 
-    SLL_CODE = 000000,
-    SRL_CODE = 000010,
-    SRA_CODE = 000011,
-    SLLV_CODE = 000100,
-    SRLV_CODE = 000110,
-    SRAV_CODE = 000111,
+    SLL_CODE = 6'b000000,
+    SRL_CODE = 6'b000010,
+    SRA_CODE = 6'b000011,
+    SLLV_CODE = 6'b000100,
+    SRLV_CODE = 6'b000110,
+    SRAV_CODE = 6'b000111,
 
-    JR_CODE = 001000,
-    JALR_CODE = 001001,
-    SYSCALL_CODE = 001100,
-    BREAK_CODE = 001101,
+    JR_CODE = 6'b001000,
+    JALR_CODE = 6'b001001,
+    SYSCALL_CODE = 6'b001100,
+    BREAK_CODE = 6'b001101,
 
-    MFHI_CODE = 010000,
-    MFLO_CODE = 010010,
-    MTHI_CODE = 010001,
-    MTLO_CODE = 010011,
+    MFHI_CODE = 6'b010000,
+    MFLO_CODE = 6'b010010,
+    MTHI_CODE = 6'b010001,
+    MTLO_CODE = 6'b010011,
 
-    MULTU_CODE = 011001,
-    MULT_CODE = 011000,
-    DIV_CODE = 011010,
-    DIVU_CODE = 011011,
+    MULTU_CODE = 6'b011001,
+    MULT_CODE = 6'b011000,
+    DIV_CODE = 6'b011010,
+    DIVU_CODE = 6'b011011,
 
-    ADD_CODE = 100000,
-    ADDU_CODE = 100001,
-    SUB_CODE = 100010,
-    SUBU_CODE = 100011,
-    AND_CODE = 100100,
-    OR_CODE = 100101,
-    XOR_CODE = 100110,
-    NOR_CODE = 100111,
-    SLT_CODE = 101010,
-    SLTU_CODE = 101011,
+    ADD_CODE = 6'b100000,
+    ADDU_CODE = 6'b100001,
+    SUB_CODE = 6'b100010,
+    SUBU_CODE = 6'b100011,
+    AND_CODE = 6'b100100,
+    OR_CODE = 6'b100101,
+    XOR_CODE = 6'b100110,
+    NOR_CODE = 6'b100111,
+    SLT_CODE = 6'b101010,
+    SLTU_CODE = 6'b101011,
 
-    TEQ_CODE = 110100,
+    TEQ_CODE = 6'b110100,
 
-    ERET_CODE = 011000,
-    MTC0_CODE = 00000,
-    MFC0_CODE = 00100,
+    ERET_CODE = 6'b011000,
+    MTC0_CODE = 5'b00000,
+    MFC0_CODE = 5'b00100,
   
-    MUL_CODE= 000010,
-    CLZ_CODE = 100000,       
+    MUL_CODE= 6'b000010,
+    CLZ_CODE = 6'b100000,       
 
-    BGEZ_CODE = 000001,
-    J_CODE = 000010,
-    JAL_CODE = 000011,
-    BEQ_CODE = 000100,
-    BNE_CODE = 000101,
+    BGEZ_CODE = 6'b000001,
+    J_CODE = 6'b000010,
+    JAL_CODE = 6'b000011,
+    BEQ_CODE = 6'b000100,
+    BNE_CODE = 6'b000101,
   
-    ADDI_CODE = 001000,
-    ADDIU_CODE = 001001,
-    SLTI_CODE = 001010,
-    SLTIU_CODE = 001011,
-    ANDI_CODE = 001100,
-    ORI_CODE = 001101,
-    XORI_CODE = 001110,
-    LUI_CODE = 001111,
+    ADDI_CODE = 6'b001000,
+    ADDIU_CODE = 6'b001001,
+    SLTI_CODE = 6'b001010,
+    SLTIU_CODE = 6'b001011,
+    ANDI_CODE = 6'b001100,
+    ORI_CODE = 6'b001101,
+    XORI_CODE = 6'b001110,
+    LUI_CODE = 6'b001111,
 
-    LB_CODE = 100000,
-    LH_CODE = 100001,
-    LW_CODE = 100011,
-    LBU_CODE = 100100,
-    LHU_CODE = 100101,
+    LB_CODE = 6'b100000,
+    LH_CODE = 6'b100001,
+    LW_CODE = 6'b100011,
+    LBU_CODE = 6'b100100,
+    LHU_CODE = 6'b100101,
 
-    SB_CODE = 101000,
-    SW_CODE = 101011,
-    SH_CODE = 101001;
+    SB_CODE = 6'b101000,
+    SW_CODE = 6'b101011,
+    SH_CODE = 6'b101001;
 
 
 wire [5:0]op,rsc,rtc,rdc,shamt,func;
@@ -236,18 +237,20 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
             T5<=0;
         end
         else if(T3)begin
-            T1<=(BREAK||SYSCALL||ERET||MFC0||MTC0||MFHI||MFLO||DIV||DIVU||MULT||MULTU||MUL||J||~(BEQ&&alu_Z==0)||~(BNE&&alu_Z!=0)||~(BGEZ&&alu_Z==0)||(TEQ&&alu_Z==0))?1:0;
+            T1<=((BREAK|SYSCALL|ERET|MFC0|MTC0|MFHI|MFLO|DIV|DIVU|MULT|MULTU|J) || 
+                ((BEQ&&alu_Z!=0)|(BNE&&alu_Z==0)|(BGEZ&&alu_Z!=0)|(TEQ&&alu_Z!=0)));
             T2<=0;
             T3<=0;
-            T4<=(BREAK||SYSCALL||ERET||MFC0||MTC0||MFHI||MFLO||DIV||DIVU||MULT||MULTU||MUL||J||~(BEQ&&alu_Z==0)||~(BNE&&alu_Z!=0)||~(BGEZ&&alu_Z==0)||~(TEQ&&alu_Z==0))?0:1;
+            T4<=~((BREAK|SYSCALL|ERET|MFC0|MTC0|MFHI|MFLO|DIV|DIVU|MULT|MULTU|J) || 
+                ((BEQ&&alu_Z!=0)|(BNE&&alu_Z==0)|(BGEZ&&alu_Z!=0)|(TEQ&&alu_Z!=0)));
             T5<=0;
         end
         else if(T4)begin
-            T1<=(BEQ||BNE||BGEZ||JALR)?0:1;
+            T1<=~(BEQ|BNE|BGEZ|JALR);
             T2<=0;
             T3<=0;
             T4<=0;
-            T5<=(BEQ||BNE||BGEZ||JALR)?1:0;
+            T5<=(BEQ|BNE|BGEZ|JALR);
         end
         else if(T5)begin
             T1<=1;
@@ -259,13 +262,16 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     end
 
 
-    assign S=T3&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
+    assign S=T3&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW|ADDI|ADDIU);
     assign M_pc[0]=T2 || (T4&JR) || (T5&(BNE|BEQ|BGEZ|JALR));
     assign M_pc[1]=T3&(BREAK|SYSCALL|ERET) || (T4&TEQ);
     assign PC_in=T2 || T3&(J|BREAK|SYSCALL|ERET) || T4&(JAL|JR|TEQ) || T5&(BNE|BEQ|BGEZ|JALR);
     assign PC_out= T1;
-    assign Y_in=T1 || T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) || T4&(BNE|BEQ|BGEZ);
-    assign Y_out=T2 || T3&(JAL|JALR) || T4&((ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR)) || T5&(BNE|BEQ|BGEZ|JALR);
+    assign Y_in=T1 || T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) ||
+                T4&(BNE|BEQ|BGEZ);
+    assign Y_out=T2 || T3&(JAL|JALR) || 
+                T4&((ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR)) ||
+                T5&(BNE|BEQ|BGEZ|JALR);
     assign M_mem=T4&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
     assign MEM_w=T4&(SW|SH|SB);
     assign MEM_r=T1 || T4&(LBU|LHU|LW|LB|LH|LW);
@@ -273,20 +279,23 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     assign MEM_C[0]=T4&(SH|LHU|LH);
     assign MEM_C[1]=T4&(SB|LBU|LB);
     assign M_A[0]=T1 || T4&(BNE|BEQ|BGEZ);
-    assign M_A[1]=T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) || T4&JALR;
+    assign M_A[1]=T3&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW|BNE|BEQ|BGEZ|JR|TEQ) ||
+                  T4&JALR;
     assign M_B[0]=T1 || T3&(ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB|LBU|LHU|LW|LB|LH|LW);
     assign M_B[1]=T1 || T4&(BNE|BEQ|BGEZ);
     assign M_B[2]=T3&(BGEZ|JR) ||T4&JALR;
     assign ALUC[0]=T3&((BGEZ)|(BNE|BEQ|TEQ)|SUB|SUBU|OR|ORI|NOR|SLT|SLTI|SRL|SRLV);
-    assign ALUC[1]=T1 ||T3&((BNE|BEQ|TEQ)|(SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR)|ADD|ADDI|SUB|XOR|NOR|SLT|SLTI|SLTU|SLTIU|SLL|SLLV) || T4&(BNE|BEQ|BGEZ|JALR);
+    assign ALUC[1]=T1 ||T3&((BNE|BEQ|TEQ)|(SW|SH|SB|LBU|LHU|LW|LB|LH|LW|JR)|ADD|ADDI|SUB|XOR|NOR|SLT|SLTI|SLTU|SLTIU|SLL|SLLV) || 
+                    T4&(BNE|BEQ|BGEZ|JALR);
     assign ALUC[2]=T3&((BGEZ)|AND|ANDI|OR|ORI|XOR|XORI|NOR|SLL|SLLV|SRL|SRLV|SRA|SRAV);
     assign ALUC[3]=T3&((BGEZ)|LUI|SLT|SLTI|SLTU|SLTIU|SLL|SLLV|SRL|SRLV|SRA|SRAV);
-    assign M_rdc[0]=T3&(MFC0|MTC0) || T4&(SW|SH|SB);
+    assign M_rdc[0]=T3&(MFC0|MTC0) || T4&(ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|SW|SH|SB);
     assign M_rdc[1]=T3&(JAL|JALR);
     assign M_rd[0]=T3&(MTC0|MFLO) || T4&(SW|SH|SB|LBU|LHU|LW|LB|LH|LW|CLZ|MUL);
     assign M_rd[1]=T3&(MFC0|MFLO) || T4&MUL;
     assign M_rd[2]=T3&MFHI || T4&CLZ;
-    assign Rd_w=T3&(JAL|JALR|CLZ|MFC0|MFHI|MFLO) || T4&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|LBU|LHU|LW|LB|LH|LW|CLZ);
+    assign Rd_w=T3&(JAL|JALR|CLZ|MFC0|MFHI|MFLO) || 
+                T4&(ADDU|ADD|SUBU|SUB|AND|OR|XOR|NOR|SLT|SLTU|SLLV|SRLV|SRAV|SRL|SRA|SLL|ADDI|ADDIU|ANDI|ORI|XORI|SLTI|SLTIU|LUI|LBU|LHU|LW|LB|LH|LW|CLZ);
     //assign Rs_r=
     //assign Rt_r=
     assign M_lo=T3&MTLO;
@@ -304,9 +313,9 @@ wire SLL,SRL,SRA,SLLV,SRLV,SRAV,JR,JALR,SYSCALL,BREAK,MFHI,MFLO,
     assign eret= T3&ERET;
     assign exception= T3&(SYSCALL|BREAK) || T4&TEQ;
     assign cause=(BREAK)?5'b01001 :(
-                      (TEQ)?5'b01101 :(
-                          (SYSCALL)?5'b01000 : 5'b00000
-                      ));
+                (TEQ)?5'b01101 :(
+                 (SYSCALL)?5'b01000 : 5'b00000 ));
 
+    assign instr_change=T1;
 
 endmodule
