@@ -8,9 +8,9 @@ module test();
   
 
     initial begin
-        file_output= $fopen( "C:\\Users\\admin\\Desktop\\CPU\\myresult_lwsw.txt");
+        file_output= $fopen( "C:\\Users\\admin\\Desktop\\CPU54\\myresult_lwsw.txt");
         rst= 1;
-        #5 rst= 0;
+        #12 rst= 0;
     end
         
     initial begin
@@ -19,7 +19,8 @@ module test();
         #5 clk= ~clk;
     end
     
-    always @( negedge clk) begin
+    always
+    begin
         counter= counter+ 1;
         
         //if( counter<= 1000) begin
@@ -71,7 +72,7 @@ module test();
         
     end
     
-    sccomp_dataflow cpuTest( .clk_in( clk), .reset( rst)//, .inst( inst), .pc( pc), .addr( addr)
+    sccomp_dataflow cpuTest( .clk_in( clk), .reset( rst), .inst( inst), .pc( pc), .addr( addr)
     
     );
     /*module sccomp_dataflow(

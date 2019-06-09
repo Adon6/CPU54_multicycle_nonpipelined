@@ -8,7 +8,7 @@ module CONTROLLER(
     input reset,   
 
 /*
-    there are output for controlling ,38bits with 9bits cp0
+    there are outputs for controlling ,38bits with 9bits cp0
     alu 9bits with mdu 7bits  won't be used together 
 */ 
     output S, 

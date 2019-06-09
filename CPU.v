@@ -5,6 +5,8 @@ module cpu(
     output Gmem_W,
     output Gmem_R,
     //output [31:0] imemAddr,
+    output [31:0]inst,
+    output [31:0]pc,
     output [31:0] GmemAddr,
     output [31:0] dataOut,
     output MEM_S,
@@ -92,6 +94,8 @@ module cpu(
     assign Gmem_R = mem_r;
 
     assign GmemAddr = mux_mem_out;
+    assign inst=ir_out;
+    assign pc=pc_out;
     assign dataOut =  rt_out;
 
 /*
