@@ -1,6 +1,7 @@
 
 //读写存储器
-module MEM(
+/*
+module MEM8(
     input MEM_W,//<1W>
     input MEM_R,//<1R>
     input MEM_S,
@@ -11,17 +12,7 @@ module MEM(
     );
     
     reg [7:0] memory[1023:0];
-/*
-    integer i;
-    
-    initial begin
-        i= 0;
-        repeat( 1024) begin
-            memory[i]<= 0;  
-            i= i+1;
-        end
-    end
-    */
+
         initial begin
        $readmemh("C:\\Users\\admin\\Desktop\\54CPUtest\\2_addiu.hex.txt", memory);
     end
@@ -82,7 +73,7 @@ module MEM(
 
 endmodule
 
-
+*/
 
 
 //读写存储器
@@ -96,7 +87,7 @@ module MEM32(
     output reg [31:0] oData
     );
     
-    reg [31:0] memory[128:0];
+    reg [31:0] memory[256:0];
 /*
     integer i;
     
@@ -109,7 +100,7 @@ module MEM32(
     end
     */
         initial begin
-       $readmemh("C:\\Users\\admin\\Desktop\\54CPUtest\\1_addi.hex.txt", memory);
+       $readmemh("C:\\Users\\admin\\Desktop\\54CPUtest\\20_sll.hex.txt", memory);
     end
 
     reg [31:0] readreg;

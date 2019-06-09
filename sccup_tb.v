@@ -10,7 +10,7 @@ module test();
   
 
     initial begin
-        file_output= $fopen( "C:\\Users\\admin\\Desktop\\54CPUtest\\2_addiu_myresult.txt");
+        file_output= $fopen( "C:\\Users\\admin\\Desktop\\54CPUtest\\20_sll_myresult.txt");
         rst= 1;
         #12 rst= 0;
     end

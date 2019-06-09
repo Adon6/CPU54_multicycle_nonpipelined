@@ -124,7 +124,7 @@ module cpu(
 
     extend #(5)EXT5(.a(shamt),.b(ext5_out) );
     sign_extend #(16)S_EXT16(.a(offset),.S(sign_ext),.b(ext16_out));
-    extend_18 #(18)EXT18(.a(offset),.b(ext18_out));
+    extend_18 EXT18(.a(offset),.b(ext18_out));
     catch CATCH_unit (.iA(pc_out[31:28]),.iB(target),.oZ(catch_out));
 
 /*
