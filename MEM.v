@@ -23,7 +23,7 @@ module MEM(
     end
     */
         initial begin
-       $readmemh("C:\\Users\\admin\\Desktop\\54CPUtest\\1_addi.hex.txt", memory);
+       $readmemh("C:\\Users\\admin\\Desktop\\54CPUtest\\2_addiu.hex.txt", memory);
     end
 
 

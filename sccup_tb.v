@@ -10,7 +10,7 @@ module test();
   
 
     initial begin
-        file_output= $fopen( "C:\\Users\\admin\\Desktop\\54CPUtest\\1_addi_myresult.txt");
+        file_output= $fopen( "C:\\Users\\admin\\Desktop\\54CPUtest\\2_addiu_myresult.txt");
         rst= 1;
         #12 rst= 0;
     end
@@ -21,6 +21,10 @@ module test();
         #5 clk= ~clk;
     end
 
+    always @(negedge instr_change)
+    begin
+        $fdisplay( file_output, "pc: %h", cpuTest.sccpu.pc_reg.data);
+    end
 
 
     always@( posedge instr_change) 
@@ -28,7 +32,6 @@ module test();
        
             counter= counter+ 1;
 
-            $fdisplay( file_output, "pc: %h", cpuTest.sccpu.pc_reg.data);
             $fdisplay( file_output, "instr: %h", cpuTest.sccpu.ir_reg.data);
             #2;
             //$fdisplay( file_output, "Daddr: %h", addr);
